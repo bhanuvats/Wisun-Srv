@@ -27,25 +27,49 @@ function broadcastUpdate(data) {
 // Handle incoming UDP messages
 server.on("message", async (msg, rinfo) => {
     try {
-        const packet = JSON.parse(msg.toString()); // assuming gateway sends JSON
+        const packet = JSON.parse(msg.toString());
         console.log("Received packet:", packet);
 
-        // 1. Update latest device state
-        await Device.findByIdAndUpdate(
-            packet.device,
-            { ...packet, lastSeenAt: new Date(), updatedAt: new Date() },
-            { upsert: true }
+        // Normalize numeric fields
+        const connections = parseInt(packet.connections) || 0;
+        const availability = parseFloat(packet.availability) || 0;
+        const humidity = parseFloat(packet.Humidity) || null;
+        const temperature = parseFloat(packet.Temp) || null;
+
+        // 1. Update latest device state (real-time table)
+        await Device.findOneAndUpdate(
+            { deviceId: packet.device },
+            {
+                chip: packet.chip,
+                parent: packet.parent,
+                running: packet.running,
+                connected: packet.connected === "true",
+                disconnected: packet.disconnected === "true",
+                connections,
+                availability,
+                connected_total: parseInt(packet.connected_total) || 0,
+                disconnected_total: parseInt(packet.disconnected_total) || 0,
+                Wisun_Data: packet.Wisun_Data,
+                humidity,
+                temperature,
+                neighbor_info: packet.neighbor_info,
+                lastSeenAt: new Date(),
+                updatedAt: new Date()
+            },
+            { upsert: true, new: true }
         );
 
-        // 2. Insert into history logs
+        // 2. Store history logs
         await DeviceLog.create({
-            device: packet.device,
+            deviceId: packet.device,
             parent: packet.parent,
-            status: packet.disconnected ? "disconnected" : "connected",
-            rsl_in: packet.rsl_in,
-            rsl_out: packet.rsl_out,
-            connections: packet.connections,
-            availability: packet.availability,
+            connected: packet.connected === "true",
+            disconnected: packet.disconnected === "true",
+            connections,
+            availability,
+            humidity,
+            temperature,
+            neighbor_info: packet.neighbor_info,
             timestamp: new Date()
         });
 
@@ -67,4 +91,3 @@ mongoose.connect(process.env.MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true
 });
- 

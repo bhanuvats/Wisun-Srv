@@ -2,14 +2,17 @@
 const mongoose = require("mongoose");
 
 const DeviceLogSchema = new mongoose.Schema({
-  device: { type: String, required: true },
+  deviceId: String,
   parent: String,
-  status: { type: String, enum: ["connected", "disconnected", "switched_parent"] },
-  rsl_in: Number,
-  rsl_out: Number,
+  connected: Boolean,
+  disconnected: Boolean,
   connections: Number,
   availability: Number,
+  humidity: Number,
+  temperature: Number,
+  neighbor_info: [{}],
   // timestamp: { type: Date, default: Date.now }
 }, { timestamps: true });
+
 
 module.exports = mongoose.model("DeviceLog", DeviceLogSchema);

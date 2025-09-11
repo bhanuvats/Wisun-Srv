@@ -2,22 +2,23 @@
 const mongoose = require("mongoose");
 
 const DeviceSchema = new mongoose.Schema({
-  _id: { type: String, required: true }, // device ID
+  deviceId: { type: String, required: true, unique: true },
   chip: String,
   parent: String,
   running: String,
-  connected: String,
-  disconnected: { type: Boolean, default: false },
+  connected: Boolean,
+  disconnected: Boolean,
   connections: Number,
   availability: Number,
-  connected_total: String,
-  disconnected_total: String,
-  wisun_data: String,
-  rsl_in: Number,
-  rsl_out: Number,
-  is_lfn: Number,
-  lastSeenAt: { type: Date, default: Date.now },
-  // updatedAt: { type: Date, default: Date.now }
+  connected_total: Number,
+  disconnected_total: Number,
+  Wisun_Data: String,
+  humidity: Number,
+  temperature: Number,
+  neighbor_info: [{ id: String, rsl_in: Number, rsl_out: Number }],
+  lastSeenAt: Date,
+  // updatedAt: Date
 }, { timestamps: true });
+
 
 module.exports = mongoose.model("Device", DeviceSchema);
