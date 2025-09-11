@@ -2,7 +2,7 @@ const dgram = require("dgram");
 const client = dgram.createSocket("udp4");
 
 const message = JSON.stringify({
-  device: "ab96",
+  device: "asdfghjkl",
   chip: "xG28",
   parent: "ab48",
   running: "0-00:10:21",
@@ -24,8 +24,8 @@ const message = JSON.stringify({
 client.send(
   message,
   41234,
-  "0.0.0.0",
-  // "ec2-65-0-18-67.ap-south-1.compute.amazonaws.com",
+  // "0.0.0.0",
+  "ec2-65-0-18-67.ap-south-1.compute.amazonaws.com",
   (err) => {
     if (err) console.error("Send error:", err);
     else console.log("✅ Test packet sent successfully");

@@ -27,6 +27,8 @@ function broadcastUpdate(data) {
 // Handle incoming UDP messages
 server.on("message", async (msg, rinfo) => {
     try {
+        console.log("messsage received", msg);
+        
         const packet = JSON.parse(msg.toString());
         console.log("Received packet:", packet);
 
