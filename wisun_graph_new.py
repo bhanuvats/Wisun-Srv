@@ -222,4 +222,4 @@ if __name__ == '__main__':
 
     threading.Thread(target=update_graph_periodically, daemon=True).start()
 
-    app.run(host='0.0.0.0', port=5050)
+    app.run(host='0.0.0.0', port=80)
