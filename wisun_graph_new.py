@@ -9,74 +9,49 @@ import threading
 from collections import deque
 
 from flask import Flask, send_file
+
+from pymongo import MongoClient
+
  
 app = Flask(__name__)
  
 # Function to process the log data
 
-def process_log_data(file_path):
+def process_log_data_from_db():
+    node_parent_map = {}
+    edge_labels = {}
+    recent_nodes = set()
 
-    node_parent_map = {}  # Dictionary to store the final parent of each node
-
-    edge_labels = {}      # Dictionary to store the rsl_out value for each edge
-
-    recent_nodes = set()  # Set to store nodes found in the last 100 lines
-
-    last_100_lines = deque(maxlen=50)  # Deque to store the last 100 lines
- 
     try:
+        # Connect to MongoDB (adjust URI, DB name, collection name)
+        client = MongoClient("mongodb+srv://vikash:vikash@cluster0.r8xnzcr.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+        db = client["test"]                # database name
+        collection = db["devices"]        # collection name
 
-        with open(file_path, 'r') as file:
+        # Fetch all documents (you can add filters if needed)
+        docs = list(collection.find())
 
-            # Load the file lines into the deque (last 100 lines)
+        # Fill maps
+        for doc in docs:
+            device = doc.get("device")
+            parent = doc.get("parent")
+            rsl_out = doc.get("rsl_out")
 
-            for line in file:
+            if device and parent:
+                node_parent_map[device] = parent
+                edge_labels[device] = f"{rsl_out} dBm" if rsl_out is not None else ""
 
-                line = line.strip()
+        # Define "recent" nodes (last N entries, similar to deque logic)
+        recent_docs = docs[-50:]   # last 50 entries
+        for doc in recent_docs:
+            if "device" in doc:
+                recent_nodes.add(doc["device"])
 
-                last_100_lines.append(line)
- 
-                # Process the entire log
+    except Exception as e:
+        print(f"MongoDB read error: {e}")
 
-                device_match = re.search(r'"device"\s*:\s*"([^"]+)"', line)
-
-                parent_match = re.search(r'"parent"\s*:\s*"([^"]+)"', line)
-
-                rsl_out_match = re.search(r'"rsl_out"\s*:\s*(-?\d+)', line)
- 
-                if device_match and parent_match:
-
-                    device = device_match.group(1)
-
-                    parent = parent_match.group(1)
-
-                    node_parent_map[device] = parent
- 
-                    if rsl_out_match:
-
-                        rsl_out = rsl_out_match.group(1)
-
-                        edge_labels[device] = f"{rsl_out} dBm"
-
-                    else:
-
-                        edge_labels[device] = ""  # Empty label if rsl_in is not found
- 
-            # Process only the last 100 lines to determine recent nodes
-
-            for line in last_100_lines:
-
-                device_match = re.search(r'"device"\s*:\s*"([^"]+)"', line)
-
-                if device_match:
-
-                    recent_nodes.add(device_match.group(1))
- 
-    except IOError as e:
-
-        print(f"Failed to read the file: {e}")
- 
     return node_parent_map, edge_labels, recent_nodes
+
 # Function to generate the SVG from the node-parent map
 
 def generate_svg(node_parent_map, edge_labels, recent_nodes):
@@ -132,7 +107,7 @@ def generate_svg(node_parent_map, edge_labels, recent_nodes):
 
     (graph,) = pydot.graph_from_dot_data(dot_graph)
 
-    graph.write_svg("/home/wisun/Updated_git/wisun_network.svg")
+    graph.write_svg("/home/ubuntu/Wisun-Srv/wisun_network.svg")
 
     print("SVG file written successfully.")
 
@@ -156,7 +131,7 @@ def update_graph_periodically():
 
 def process_and_generate_graph():
 
-    node_parent_map, edge_labels, recent_nodes = process_log_data('/home/wisun/desktop/data.txt')
+    node_parent_map, edge_labels, recent_nodes = process_log_data_from_db()
 
     generate_svg(node_parent_map, edge_labels, recent_nodes)
  
@@ -166,7 +141,7 @@ def process_and_generate_graph():
 
 def serve_svg():
 
-    return send_file('/home/wisun/Updated_git/wisun_network.svg', mimetype='image/svg+xml')
+    return send_file('/home/ubuntu/Wisun-Srv/wisun_network.svg', mimetype='image/svg+xml')
  
 # Route to serve the HTML page that displays the SVG
 
@@ -248,7 +223,3 @@ if __name__ == '__main__':
     threading.Thread(target=update_graph_periodically, daemon=True).start()
 
     app.run(host='0.0.0.0', port=5001)
-
- 
- 
- 
