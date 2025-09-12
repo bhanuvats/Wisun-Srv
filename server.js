@@ -29,7 +29,10 @@ server.on("message", async (msg, rinfo) => {
     try {
         console.log("messsage received", msg);
         
-        const packet = JSON.parse(msg.toString());
+        // Clean incoming message: remove "Node Online #xx" before parsing
+        const cleanMsg = msg.toString().replace(/^Node Online #[0-9]+\s*/, "");
+        const packet = JSON.parse(cleanMsg);
+
         console.log("Received packet:", packet);
 
         // Normalize numeric fields
