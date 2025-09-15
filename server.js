@@ -35,9 +35,6 @@ server.on("message", async (msg, rinfo) => {
 
         console.log("Received packet:", packet);
 
-        const deviceId = packet.device;
-        currentDeviceIds.add(deviceId);
-
         // Normalize numeric fields
         const connections = parseInt(packet.connections) || 0;
         const availability = parseFloat(packet.availability) || 0;
@@ -46,7 +43,7 @@ server.on("message", async (msg, rinfo) => {
 
         // 1. Update latest device state (real-time table)
         await Device.findOneAndUpdate(
-            { deviceId },
+            { deviceId: packet.device },
             {
                 chip: packet.chip,
                 parent: packet.parent,
@@ -83,24 +80,6 @@ server.on("message", async (msg, rinfo) => {
 
         // 3. Broadcast to frontend
         broadcastUpdate({ event: "node_update", data: packet });
-
-         // --- Cleanup devices not in buffer ---
-        // Reset cleanup timer (wait 2s after last packet in buffer)
-        if (cleanupTimer) clearTimeout(cleanupTimer);
-        cleanupTimer = setTimeout(async () => {
-            try {
-                const activeIds = Array.from(currentDeviceIds);
-                console.log("Active deviceIds this round:", activeIds);
-
-                // Delete docs with deviceId not in current batch
-                await Device.deleteMany({ deviceId: { $nin: activeIds } });
-
-                console.log("Cleanup done ✅");
-                currentDeviceIds.clear();
-            } catch (err) {
-                console.error("Error during cleanup:", err);
-            }
-        }, 2000); // adjust timeout as per buffer batch frequency
 
     } catch (err) {
         console.error("Error handling packet:", err);
