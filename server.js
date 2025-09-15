@@ -30,7 +30,7 @@ server.on("message", async (msg, rinfo) => {
         console.log("messsage received", msg);
         
         // Clean incoming message: remove "Node Online #xx" before parsing
-        const cleanMsg = msg.toString().replace(/^Node Online #[0-9]+\s*/, "");
+        //const cleanMsg = msg.toString().replace(/^Node Online #[0-9]+\s*/, "");
         const packet = JSON.parse(cleanMsg);
 
         console.log("Received packet:", packet);
