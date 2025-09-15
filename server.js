@@ -24,12 +24,6 @@ function broadcastUpdate(data) {
     });
 }
 
-
-// Track deviceIds seen in current batch
-let currentDeviceIds = new Set();
-let cleanupTimer = null;
-
-
 // Handle incoming UDP messages
 server.on("message", async (msg, rinfo) => {
     try {
