@@ -104,7 +104,7 @@ server.on("message", async (msg, rinfo) => {
             } catch (err) {
                 console.error("Error during cleanup:", err);
             }
-        }, 10000); // adjust timeout as per buffer batch frequency
+        }, 5000); // adjust timeout as per buffer batch frequency
 
     } catch (err) {
         console.error("Error handling packet:", err);
