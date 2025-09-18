@@ -34,8 +34,27 @@ server.on("message", async (msg, rinfo) => {
         console.log("messsage received", msg);
         
         // Clean incoming message: remove "Node Online #xx" before parsing
-        const cleanMsg = msg.toString().replace(/^Node Online #[0-9]+\s*/, "");
-        const packet = JSON.parse(cleanMsg);
+        //const cleanMsg = msg.toString().replace(/^Node Online #[0-9]+\s*/, "");
+        //const cleanMsg2 = msg.toString().replace(/^Node Online [0-9]+\s*/, "");
+        const packet = null;
+
+
+        const msgStr = msg.toString();
+
+        // Check bytes directly in buffer (26th byte = index 25, since it's 0-based)
+        const target = Buffer.from('"abb9"'); // hex: 22 61 62 62 39 22
+        const slice = msg.slice(25, 25 + target.length); // extract 6 bytes
+
+        let cleanMsg;
+        if (slice.equals(target)) {
+            // If it's abb9
+            cleanMsg = msgStr.replace(/^Node Online [0-9]+\s*/, "");
+            packet = JSON.parse(cleanMsg);
+        } else {
+            // Default case
+            cleanMsg = msgStr.replace(/^Node Online #[0-9]+\s*/, "");
+            packet = JSON.parse(cleanMsg);
+        }
 
         console.log("Received packet:", packet);
 
