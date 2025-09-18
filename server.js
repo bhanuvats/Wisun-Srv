@@ -36,7 +36,7 @@ server.on("message", async (msg, rinfo) => {
         // Clean incoming message: remove "Node Online #xx" before parsing
         //const cleanMsg = msg.toString().replace(/^Node Online #[0-9]+\s*/, "");
         //const cleanMsg2 = msg.toString().replace(/^Node Online [0-9]+\s*/, "");
-        const packet = null;
+        let packet = null;
 
 
         const msgStr = msg.toString();
